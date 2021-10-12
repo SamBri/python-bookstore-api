@@ -54,13 +54,11 @@ def check_jwt_token(token:str = Depends(oauth_schema)):
                 if fake_jwt_user1.username == username:
                     return final_checks(role)
     except Exception as e:
-            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
-    raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
-
+            return False
+    return False
 # Last checking and returning the final result
 def final_checks( role:str):
     if role == "admin":
         return True
     else:
-        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
-
+        return False

@@ -1,5 +1,6 @@
-from fastapi import FastAPI, Body, Header, File, Depends, HTTPException
+from fastapi import FastAPI, Body, Header, File, Depends, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
+from starlette.exceptions import HTTPException
 
 from models import Book
 from models.author import Author
@@ -8,21 +9,22 @@ from models.user import User
 from starlette.status import HTTP_201_CREATED, HTTP_401_UNAUTHORIZED
 from starlette.responses import Response
 
-from utils.security import authenticate_user, create_jwt_token, check_jwt_token
+from utils.security import authenticate_user, create_jwt_token
 
-app_v1 = FastAPI(openapi_prefix="/v1")# fastapi object assigned to app
+#app_v1 = FastAPI(openapi_prefix="/v1")# fastapi object assigned to app
+app_v1 = APIRouter()
 
-@app_v1.post("/user", status_code=HTTP_201_CREATED)
-async def post_user(user: User, x_custom:str = Header("default"),jwt: bool= Depends(check_jwt_token)):
+@app_v1.post("/user", status_code=HTTP_201_CREATED, tags=["user"])
+async def post_user(user: User, x_custom:str = Header("default")):
     return {"request body":user, "request custome header":x_custom}
 
 # get user and passing query params
-@app_v1.get("/user") # passing query params.
+@app_v1.get("/user",tags=["user"]) # passing query params.
 async def get_user_validation(password:str):
     return {"v1_query parameter":password}
 
 # get book, pass isbn
-@app_v1.get("/book/{isbn}", response_model=Book, response_model_include=["author"])
+@app_v1.get("/book/{isbn}", response_model=Book, response_model_include=["author"], tags=["book"])
 async def get_book_with_isbn(isbn:str):
     author_dict = {
         "name": "author1",
@@ -62,6 +64,7 @@ async def upload_user_photo(response: Response, profile_photo: bytes = File(...)
     return {"file size": len(profile_photo)}
 
 # endpoint
+''''
 @app_v1.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
    jwt_user_dict = {"username":form_data.username,"password":form_data.password}
@@ -69,7 +72,8 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
    user = authenticate_user(jwt_user)
 
    if user is None:
-        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
+        raise HTTPException(HTTP_401_UNAUTHORIZED)
 
    jwt_token = create_jwt_token(user)
-   return {"token":jwt_token}
+   return {"access_token":jwt_token}
+'''''
